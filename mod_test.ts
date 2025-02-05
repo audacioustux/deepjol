@@ -250,3 +250,39 @@ Deno.test("deepDiff should detect changes in complex objects", () => {
     collection: [{ id: 1, name: "foo", value: "baz" }],
   });
 });
+
+Deno.test("deepDiff example should work with advanced options", () => {
+  const result = deepDiff(
+    {
+      products: [
+        { id: 1, name: "Widget", stock: 10 },
+        { id: 2, name: "Gadget", stock: 5 },
+      ],
+    },
+    {
+      products: [
+        { id: 1, name: "Widget", stock: 8 },
+        { id: 2, name: "Gadget Pro", stock: 5 },
+      ],
+    },
+    {
+      products: {
+        unique_by: "id",
+        omit_unchanged_entries: true,
+        ignore_keys: ["stock"],
+      },
+    },
+  );
+
+  assertEquals(result, { products: [{ id: 2, name: "Gadget Pro" }] });
+});
+
+Deno.test("deepDiff example should work with smart array matching with unique IDs", () => {
+  const result = deepDiff(
+    { users: [{ id: 1, name: "Alice" }] },
+    { users: [{ id: 1, name: "Alison" }] },
+    { users: { unique_by: "id" } },
+  );
+
+  assertEquals(result, { users: [{ id: 1, name: "Alison" }] });
+});
