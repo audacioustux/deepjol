@@ -14,7 +14,7 @@ interface ArrayDiffConfigOptions {
   omit_unchanged_elements?: boolean;
 }
 
-interface ArrayOfObjectsDiffConfigOptions<T extends Array<any>> {
+interface ArrayOfObjectsDiffConfigOptions<T extends Array<unknown>> {
   unique_by?: keyof T[number];
   ignore_keys?: (keyof T[number])[];
   omit_unchanged_elements?: boolean;
