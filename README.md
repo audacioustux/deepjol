@@ -11,7 +11,7 @@ deno add deepjol
 ## Usage
 
 ```ts
-import { deepDiff } from "./mod.ts";
+import * as deepjol from "jsr:@audacioustux/deepjol";
 ```
 
 ## Features
