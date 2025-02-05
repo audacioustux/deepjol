@@ -1,6 +1,8 @@
-# Dipjol
+# Deepjol
 
-Dipjol is a powerful utility library for deep diffing JavaScript objects, enabling you to detect changes, additions, and deletions across complex nested structures and arrays. It offers flexible configuration options to control the output format, making it ideal for applications like state synchronization, patch generation, and audit logging.
+![publish](https://github.com/audacioustux/deepjol/actions/workflows/publish.yml/badge.svg)
+
+Deepjol is a powerful utility library for deep diffing JavaScript objects, enabling you to detect changes, additions, and deletions across complex nested structures and arrays. It offers flexible configuration options to control the output format, making it ideal for applications like state synchronization, patch generation, and audit logging.
 
 ## Installation
 
