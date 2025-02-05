@@ -31,11 +31,19 @@ Deno.test("deepDiff should detect a removed entry in a nested object", () => {
   assertEquals(result, { a: { c: undefined } });
 });
 
+Deno.test("deepDiff should omit unchanged keys in objects when configured", () => {
+  const left = { a: 1, b: 2 };
+  const right = { a: 1, b: 3 };
+
+  const result = deepDiff(left, right, { omit_unchanged_entries: false });
+  assertEquals(result, { a: 1, b: 3 });
+});
+
 Deno.test("deepDiff should omit unchanged keys in nested objects when configured", () => {
   const left = { a: { b: 1, c: 2 }, d: { e: 3, f: 4 } };
   const right = { a: { b: 2, c: 2 }, d: { e: 3, f: 5 } };
 
-  const result = deepDiff(left, right, { a: { omit_unchanged_keys: true } });
+  const result = deepDiff(left, right, { a: { omit_unchanged_entries: true } });
   assertEquals(result, { a: { b: 2 }, d: { f: 5 } });
 });
 
@@ -47,12 +55,12 @@ Deno.test("deepDiff should ignore specified keys in nested objects", () => {
   assertEquals(result, { d: { f: 5 } });
 });
 
-Deno.test("deepDiff should ignore specified keys in nested objects when omit_unchanged_keys is false", () => {
+Deno.test("deepDiff should ignore specified keys in nested objects when omit_unchanged_entries is false", () => {
   const left = { a: { b: 1, c: 2 }, d: { e: 3, f: 4 } };
   const right = { a: { b: 2, c: 2 }, d: { e: 4, f: 4 } };
 
   const result = deepDiff(left, right, {
-    a: { omit_unchanged_keys: false },
+    a: { omit_unchanged_entries: false },
   });
   assertEquals(result, { a: { b: 2, c: 2 }, d: { e: 4 } });
 });
@@ -61,7 +69,9 @@ Deno.test("deepDiff should include unchanged keys in nested objects when configu
   const left = { a: { b: 1, c: 2 }, d: { e: 3, f: 4 } };
   const right = { a: { b: 2, c: 2 }, d: { e: 3, f: 5 } };
 
-  const result = deepDiff(left, right, { a: { omit_unchanged_keys: false } });
+  const result = deepDiff(left, right, {
+    a: { omit_unchanged_entries: false },
+  });
   assertEquals(result, { a: { b: 2, c: 2 }, d: { f: 5 } });
 });
 
@@ -121,14 +131,49 @@ Deno.test("deepDiff should include unchanged array elements when using a unique 
   });
 });
 
-Deno.test("deepDiff should omit unchanged keys in array elements when omit_unchanged_keys is true", () => {
+Deno.test("deepDiff should omit unchanged keys in array elements when omit_unchanged_entries is true", () => {
   const left = { a: [{ id: 1, val1: "foo", val2: "bar" }] };
   const right = { a: [{ id: 1, val1: "foo", val2: "baz" }] };
 
   const result = deepDiff(left, right, {
-    a: { unique_by: "id", omit_unchanged_keys: true },
+    a: { unique_by: "id", omit_unchanged_entries: true },
   });
   assertEquals(result, { a: [{ id: 1, val2: "baz" }] });
+});
+
+Deno.test("deepDiff should include unchanged keys in array elements when omit_unchanged_entries is false", () => {
+  const left = { a: [{ id: 1, val1: "foo", val2: "bar" }] };
+  const right = { a: [{ id: 1, val1: "foo", val2: "baz" }] };
+
+  const result = deepDiff(left, right, {
+    a: { unique_by: "id", omit_unchanged_entries: false },
+  });
+  assertEquals(result, { a: [{ id: 1, val1: "foo", val2: "baz" }] });
+});
+
+Deno.test("deepDiff should include unchanged keys in array elements when omit_unchanged_entries is false and omit_unchanged_elements is true", () => {
+  const left = {
+    a: [
+      { id: 1, val1: "foo", val2: "bar" },
+      { id: 2, val1: "baz", val2: "qux" },
+    ],
+  };
+  const right = {
+    a: [
+      { id: 1, val1: "foo", val2: "baz" },
+      { id: 2, val1: "baz", val2: "qux" },
+    ],
+  };
+
+  const result = deepDiff(left, right, {
+    a: {
+      unique_by: "id",
+      omit_unchanged_elements: true,
+      omit_unchanged_entries: false,
+    },
+  });
+
+  assertEquals(result, { a: [{ id: 1, val1: "foo", val2: "baz" }] });
 });
 
 Deno.test("deepDiff should ignore specified keys in array elements", () => {
@@ -147,4 +192,61 @@ Deno.test("deepDiff should ignore specified keys in array elements with multiple
     { a: { unique_by: "id", ignore_keys: ["val1"] } },
   );
   assertEquals(result, { a: [{ id: 1, val2: "baz" }] });
+});
+
+Deno.test("deepDiff should detect changes in complex objects", () => {
+  const left = {
+    images: [
+      { id: 1, updated: "2021-01-01", url: "https://example.com/image.jpg" },
+      { id: 2, updated: "2021-01-02", url: "https://example.com/image2.jpg" },
+    ],
+    meta_data: [
+      { id: 11, key: "key1", value: "value1" },
+      { id: 12, key: "key2", value: "value2" },
+    ],
+    line_items: [
+      { id: 1, name: "Item 1", quantity: 1 },
+      { id: 2, name: "Item 2", quantity: 2 },
+    ],
+    collection: [
+      { id: 1, name: "foo", value: "bar" },
+      { id: 2, name: "baz", value: "qux" },
+    ],
+  };
+
+  const right = {
+    images: [{
+      id: 1,
+      updated: "2021-01-01",
+      url: "https://example.com/image3.jpg",
+    }],
+    meta_data: [{ id: 11, key: "key1", value: "value3" }],
+    line_items: [
+      { id: 1, name: "Item 1", quantity: 1 },
+      { id: 2, name: "Item 2", quantity: 3 },
+    ],
+    collection: [
+      { id: 1, name: "foo", value: "baz" },
+      { id: 2, name: "baz", value: "qux" },
+    ],
+  };
+
+  const result = deepDiff(left, right, {
+    images: { unique_by: "id" },
+    meta_data: { unique_by: "key", omit_unchanged_entries: false },
+    line_items: { unique_by: "id", omit_unchanged_elements: true },
+    collection: {
+      unique_by: "id",
+      omit_unchanged_elements: true,
+      omit_unchanged_entries: false,
+    },
+    default: { omit_unchanged_entries: true },
+  });
+
+  assertEquals(result, {
+    images: [{ id: 1, url: "https://example.com/image3.jpg" }],
+    meta_data: [{ id: 11, key: "key1", value: "value3" }],
+    line_items: [{ id: 2, quantity: 3 }],
+    collection: [{ id: 1, name: "foo", value: "baz" }],
+  });
 });
