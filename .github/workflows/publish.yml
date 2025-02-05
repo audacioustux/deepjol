@@ -17,7 +17,7 @@ jobs:
       - uses: denoland/setup-deno@v2
 
       - name: Run linter
-        run: deno lint
+        run: deno lint --allow-dirty
 
       - name: Run tests
         run: deno test
