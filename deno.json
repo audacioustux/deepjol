@@ -1,6 +1,6 @@
 {
-    "name": "@audacioustux/deepjol",
-    "version": "0.1.1",
-    "license": "MIT",
-    "exports": "./mod.ts"
+  "name": "@audacioustux/deepjol",
+  "version": "0.1.1",
+  "license": "MIT",
+  "exports": "./mod.ts"
 }
