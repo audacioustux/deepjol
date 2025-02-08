@@ -201,8 +201,8 @@ Deno.test("deepDiff should detect changes in complex objects", () => {
       { id: 2, updated: "2021-01-02", url: "https://example.com/image2.jpg" },
     ],
     meta_data: [
-      { id: 11, key: "key1", value: "value1" },
-      { id: 12, key: "key2", value: "value2" },
+      { id: 11, key: "key1", value: "value1", data: "data1" },
+      { id: 12, key: "key2", value: "value2", data: "data2" },
     ],
     line_items: [
       { id: 1, name: "Item 1", quantity: 1 },
@@ -212,14 +212,13 @@ Deno.test("deepDiff should detect changes in complex objects", () => {
       { id: 1, name: "foo", value: "bar" },
       { id: 2, name: "baz", value: "qux" },
     ],
+    data: "data",
   };
 
   const right = {
-    images: [{
-      id: 1,
-      updated: "2021-01-01",
-      url: "https://example.com/image3.jpg",
-    }],
+    images: [
+      { id: 1, updated: "2021-01-01", url: "https://example.com/image3.jpg" },
+    ],
     meta_data: [{ id: 11, key: "key1", value: "value3" }],
     line_items: [
       { id: 1, name: "Item 1", quantity: 1 },
@@ -233,14 +232,18 @@ Deno.test("deepDiff should detect changes in complex objects", () => {
 
   const result = deepDiff(left, right, {
     images: { unique_by: "id" },
-    meta_data: { unique_by: "key", omit_unchanged_entries: false },
+    meta_data: {
+      unique_by: "key",
+      omit_unchanged_entries: false,
+      ignore_missing: true,
+    },
     line_items: { unique_by: "id", omit_unchanged_elements: true },
     collection: {
       unique_by: "id",
       omit_unchanged_elements: true,
       omit_unchanged_entries: false,
     },
-    default: { omit_unchanged_entries: true },
+    default: { omit_unchanged_entries: true, ignore_missing: true },
   });
 
   assertEquals(result, {
